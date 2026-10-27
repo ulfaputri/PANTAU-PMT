@@ -53,13 +53,13 @@ async function onSession(s){session=s;const {data,error}=await sb.from('profiles
  if(error||!data){
    // Jangan mengeluarkan pengguna hanya karena profil gagal dibaca sementara.
    // Sesi Supabase tetap tersimpan; akses admin dinonaktifkan sampai profil terbaca.
-   profile=null;$('loginPanel').classList.add('hidden');$('app').classList.remove('hidden');$('logout').classList.add('hidden');
+   profile=null;$('loginPanel').classList.add('hidden');$('app').classList.remove('hidden');$('logout').classList.remove('hidden');
    $('who').textContent='Sesi aktif · profil belum termuat';$('peopleEntryPanel').classList.add('hidden');
    status('docStatus','Sesi masih tersimpan, tetapi profil belum dapat dibaca. Periksa koneksi lalu tekan “Muat ulang data online”.');
    try{await refreshAll()}catch(e){}
    return;
  }
- profile=data;$('loginPanel').classList.add('hidden');$('app').classList.remove('hidden');$('logout').classList.toggle('hidden',data.role!=='admin');$('who').textContent=`${data.full_name||data.username||s.user.email} · ${data.role==='admin'?'Admin':'Kader'}`;$('peopleEntryPanel').classList.toggle('hidden',!isAdmin());
+ profile=data;$('loginPanel').classList.add('hidden');$('app').classList.remove('hidden');$('logout').classList.remove('hidden');$('who').textContent=`${data.full_name||data.username||s.user.email} · ${data.role==='admin'?'Admin':'Kader'}`;$('peopleEntryPanel').classList.toggle('hidden',!isAdmin());
  document.querySelectorAll('[data-page]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-page]').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id===b.dataset.page))}));
  await refreshAll();if(window.pmtSyncTimer)clearInterval(window.pmtSyncTimer);window.pmtSyncTimer=setInterval(()=>{if(session)refreshAll().catch(()=>{})},20000)}
 $('login').onclick=async()=>{const raw=$('loginName').value.trim();const password=$('password').value;if(!raw||!password){status('loginStatus','Masukkan email/username dan kata sandi.');return}const email=raw.includes('@')?raw:`${raw.toLowerCase()}@kader.pmt.local`;const btn=$('login');btn.disabled=true;status('loginStatus','Sedang masuk…');try{const {data,error}=await sb.auth.signInWithPassword({email,password});if(error)throw error;await onSession(data.session)}catch(e){status('loginStatus','Gagal masuk: '+(e.message||'Periksa akun, kata sandi, dan profil di Supabase.'))}finally{btn.disabled=false}};
